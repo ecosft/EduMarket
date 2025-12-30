@@ -9,10 +9,14 @@ import AdminDashboard from './components/AdminDashboard';
 import LessonRoom from './components/LessonRoom';
 import { UserRole, StudentApplication, ApplicationStatus, User } from './types';
 import { MOCK_TEACHERS } from './constants';
+import { translations } from './translations';
+import { Shield, ArrowLeft, LogIn } from 'lucide-react';
 
 interface AdminSettings {
   notificationEmail: string;
   formspreeId: string;
+  adminUsername?: string;
+  adminPassword?: string;
 }
 
 const App: React.FC = () => {
@@ -23,16 +27,32 @@ const App: React.FC = () => {
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
     notificationEmail: '',
-    formspreeId: ''
+    formspreeId: '',
+    adminUsername: 'admin',
+    adminPassword: 'admin123'
   });
+
+  // Auth specific state
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminCreds, setAdminCreds] = useState({ username: '', password: '' });
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     const savedApps = localStorage.getItem('edumarket_apps');
     if (savedApps) setApplications(JSON.parse(savedApps));
 
     const savedSettings = localStorage.getItem('edumarket_settings');
-    if (savedSettings) setAdminSettings(JSON.parse(savedSettings));
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      setAdminSettings(prev => ({
+        ...prev,
+        ...parsed
+      }));
+    }
     
+    const savedUser = localStorage.getItem('edumarket_user');
+    if (savedUser) setUser(JSON.parse(savedUser));
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') || 'landing';
       setCurrentPage(hash);
@@ -49,6 +69,14 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('edumarket_settings', JSON.stringify(adminSettings));
   }, [adminSettings]);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('edumarket_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('edumarket_user');
+    }
+  }, [user]);
 
   const handleSetLang = (newLang: 'ru' | 'kk') => setLang(newLang);
 
@@ -67,13 +95,11 @@ const App: React.FC = () => {
     };
     setApplications([...applications, newApp]);
     
-    // Auto-login logic
     if (!user) {
       const newUser: User = { id: 's1', name: data.name, role: UserRole.STUDENT, email: data.contact };
       setUser(newUser);
     }
 
-    // Notification Logic
     if (adminSettings.formspreeId) {
       try {
         await fetch(`https://formspree.io/f/${adminSettings.formspreeId}`, {
@@ -99,12 +125,33 @@ const App: React.FC = () => {
 
   const handleNavigate = (page: string) => {
     window.location.hash = page;
+    setAuthError('');
+  };
+
+  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validate against stored credentials in settings
+    const storedUser = adminSettings.adminUsername || 'admin';
+    const storedPass = adminSettings.adminPassword || 'admin123';
+
+    if (adminCreds.username === storedUser && adminCreds.password === storedPass) {
+      const adminUser: User = { id: 'a1', name: 'Администратор', role: UserRole.ADMIN, email: 'admin@example.com' };
+      setUser(adminUser);
+      handleNavigate('dashboard');
+      setShowAdminLogin(false);
+      setAdminCreds({ username: '', password: '' });
+    } else {
+      setAuthError(translations[lang].auth.error);
+    }
   };
 
   const loginAs = (role: UserRole) => {
+    if (role === UserRole.ADMIN) {
+      setShowAdminLogin(true);
+      return;
+    }
     if (role === UserRole.STUDENT) setUser({ id: 's1', name: lang === 'ru' ? 'Иван Ученик' : 'Арман Оқушы', role, email: 'student@example.com' });
     if (role === UserRole.TEACHER) setUser({ id: 't1', name: 'Александр Иванов', role, email: 'teacher@example.com' });
-    if (role === UserRole.ADMIN) setUser({ id: 'a1', name: 'Администратор', role, email: 'admin@example.com' });
     handleNavigate('dashboard');
   };
 
@@ -118,6 +165,8 @@ const App: React.FC = () => {
       return <LessonRoom roomId={activeLessonId} onExit={() => setActiveLessonId(null)} />;
     }
 
+    const t = translations[lang];
+
     switch (currentPage) {
       case 'landing':
         return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} />;
@@ -125,12 +174,73 @@ const App: React.FC = () => {
         return <ApplicationForm lang={lang} onSubmit={handleApply} />;
       case 'login':
         return (
-          <div className="max-w-md mx-auto py-24 px-4 text-center">
-            <h2 className="text-3xl font-bold mb-8">{lang === 'ru' ? 'Войти как' : 'Кім ретінде кіру'}</h2>
-            <div className="space-y-4">
-              <button onClick={() => loginAs(UserRole.STUDENT)} className="w-full bg-white border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:text-sky-500 transition-all shadow-sm">{lang === 'ru' ? 'Студент' : 'Оқушы'}</button>
-              <button onClick={() => loginAs(UserRole.TEACHER)} className="w-full bg-white border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:text-sky-500 transition-all shadow-sm">{lang === 'ru' ? 'Учитель' : 'Мұғалім'}</button>
-              <button onClick={() => loginAs(UserRole.ADMIN)} className="w-full bg-white border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:text-sky-500 transition-all shadow-sm">{lang === 'ru' ? 'Администратор' : 'Администратор'}</button>
+          <div className="max-w-md mx-auto py-24 px-4">
+            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+              {!showAdminLogin ? (
+                <>
+                  <h2 className="text-2xl font-bold text-center mb-8">{t.auth.roleSelect}</h2>
+                  <div className="space-y-4">
+                    <button onClick={() => loginAs(UserRole.STUDENT)} className="w-full bg-gray-50 border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm">
+                      {lang === 'ru' ? 'Студент' : 'Оқушы'}
+                    </button>
+                    <button onClick={() => loginAs(UserRole.TEACHER)} className="w-full bg-gray-50 border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm">
+                      {lang === 'ru' ? 'Учитель' : 'Мұғалім'}
+                    </button>
+                    <div className="pt-4 border-t border-gray-100 mt-4">
+                      <button 
+                        onClick={() => loginAs(UserRole.ADMIN)} 
+                        className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-gray-600 font-semibold text-sm transition-colors py-2"
+                      >
+                        <Shield size={16} /> {t.auth.loginAsAdmin}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => { setShowAdminLogin(false); setAuthError(''); }}
+                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 font-medium text-sm transition-colors"
+                  >
+                    <ArrowLeft size={16} /> {t.auth.back}
+                  </button>
+                  <div className="flex justify-center mb-6">
+                    <div className="bg-sky-100 text-sky-600 p-4 rounded-2xl">
+                      <Shield size={32} />
+                    </div>
+                  </div>
+                  <h2 className="text-2xl font-bold text-center mb-6">{t.auth.loginAsAdmin}</h2>
+                  <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">{t.auth.username}</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                        value={adminCreds.username}
+                        onChange={e => setAdminCreds({...adminCreds, username: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">{t.auth.password}</label>
+                      <input 
+                        type="password" 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                        value={adminCreds.password}
+                        onChange={e => setAdminCreds({...adminCreds, password: e.target.value})}
+                      />
+                    </div>
+                    {authError && <p className="text-red-500 text-xs font-medium">{authError}</p>}
+                    <button 
+                      type="submit" 
+                      className="w-full bg-sky-500 text-white py-4 rounded-xl font-bold hover:bg-sky-600 transition-all shadow-md flex items-center justify-center gap-2"
+                    >
+                      <LogIn size={20} /> {t.auth.submit}
+                    </button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         );

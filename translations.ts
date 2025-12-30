@@ -51,13 +51,27 @@ export const translations = {
       successDesc: "Ваша заявка принята. Наши специалисты скоро перезвонят.",
       backToDashboard: "В личный кабинет"
     },
+    auth: {
+      loginTitle: "Вход в систему",
+      loginAsAdmin: "Вход для администратора",
+      username: "Логин",
+      password: "Пароль",
+      submit: "Войти",
+      back: "Назад",
+      error: "Неверный логин или пароль",
+      roleSelect: "Выберите вашу роль"
+    },
     admin: {
       settingsTitle: "Настройки уведомлений",
+      securityTitle: "Безопасность",
       emailLabel: "Email для заявок",
       emailPlaceholder: "your-email@example.com",
       formspreeLabel: "Formspree ID (опционально)",
       formspreeHint: "Используйте Formspree для отправки писем в фоне",
-      saveSettings: "Сохранить настройки"
+      usernameLabel: "Логин администратора",
+      passwordLabel: "Пароль администратора",
+      saveSettings: "Сохранить настройки",
+      settingsSaved: "Настройки сохранены!"
     }
   },
   kk: {
@@ -79,7 +93,7 @@ export const translations = {
     },
     stats: {
       teachers: "Оқытушылар",
-      students: "Оқушылар",
+      students: "Оқытушылар",
       rating: "Орташа баға",
       support: "Қолдау"
     },
@@ -111,13 +125,27 @@ export const translations = {
       successDesc: "Сіздің өтініміңіз қабылданды. Біздің мамандар жақын арада хабарласады.",
       backToDashboard: "Жеке кабинетке өту"
     },
+    auth: {
+      loginTitle: "Жүйеге кіру",
+      loginAsAdmin: "Администратор үшін кіру",
+      username: "Логин",
+      password: "Құпия сөз",
+      submit: "Кіру",
+      back: "Артқа",
+      error: "Логин немесе құпия сөз қате",
+      roleSelect: "Рөліңізді таңдаңыз"
+    },
     admin: {
       settingsTitle: "Хабарландыру параметрлері",
+      securityTitle: "Қауіпсіздік",
       emailLabel: "Өтінімдерге арналған Email",
       emailPlaceholder: "your-email@example.com",
       formspreeLabel: "Formspree ID (міндетті емес)",
       formspreeHint: "Хаттарды фонда жіберу үшін Formspree қолданыңыз",
-      saveSettings: "Параметрлерді сақтау"
+      usernameLabel: "Администратор логині",
+      passwordLabel: "Администратор құпия сөзі",
+      saveSettings: "Параметрлерді сақтау",
+      settingsSaved: "Параметрлер сақталды!"
     }
   }
 };
