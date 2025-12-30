@@ -48,15 +48,22 @@ export interface TeacherApplication {
   createdAt: string;
 }
 
+export interface PreferredTime {
+  date?: string;
+  days: string[];
+  time: string;
+  timezone: 'MSK' | 'ALMT';
+}
+
 export interface StudentApplication {
   id: string;
   studentId: string;
   studentName: string;
-  contact: string;
+  email: string;
+  phone: string;
   subjectId: string;
-  goal: string;
   level: 'beginner' | 'intermediate' | 'advanced';
-  preferredTime: string;
+  preferredTime: PreferredTime;
   status: ApplicationStatus;
   assignedTeacherId?: string;
   lessonRoomId?: string;
@@ -68,4 +75,13 @@ export interface User {
   name: string;
   role: UserRole;
   email: string;
+}
+
+export interface AdminSettings {
+  notificationEmail: string;
+  formspreeId: string;
+  adminUsername?: string;
+  adminPassword?: string;
+  footerEmail: string;
+  footerPhone: string;
 }

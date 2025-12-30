@@ -1,16 +1,9 @@
 
 import React, { useState } from 'react';
-import { StudentApplication, ApplicationStatus, Teacher, TeacherApplication } from '../types';
+import { StudentApplication, ApplicationStatus, Teacher, TeacherApplication, AdminSettings } from '../types';
 import { SUBJECTS } from '../constants';
 import { translations } from '../translations';
-import { Shield, Settings, Users, BookOpen, CheckCircle, Mail, Key, Clock, UserPlus, XCircle } from 'lucide-react';
-
-interface AdminSettings {
-  notificationEmail: string;
-  formspreeId: string;
-  adminUsername?: string;
-  adminPassword?: string;
-}
+import { Shield, Settings, Users, BookOpen, CheckCircle, Mail, Key, Clock, UserPlus, XCircle, MapPin, Calendar, Phone } from 'lucide-react';
 
 interface AdminDashboardProps {
   applications: StudentApplication[];
@@ -98,11 +91,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <h2 className="text-xl font-bold">{lang === 'ru' ? 'Все заявки учеников' : 'Барлық оқушы өтінімдері'}</h2>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left">
+                  <table className="w-full text-left min-w-[800px]">
                     <thead>
                       <tr className="bg-gray-50 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
                         <th className="px-8 py-4">Ученик</th>
-                        <th className="px-8 py-4">Предмет</th>
+                        <th className="px-8 py-4">Предмет / Уровень</th>
+                        <th className="px-8 py-4">Удобное время</th>
                         <th className="px-8 py-4">Статус</th>
                         <th className="px-8 py-4">Учитель</th>
                       </tr>
@@ -110,7 +104,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <tbody className="divide-y divide-gray-100">
                       {applications.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-8 py-10 text-center text-gray-400 italic">
+                          <td colSpan={5} className="px-8 py-10 text-center text-gray-400 italic">
                             {lang === 'ru' ? 'Заявок пока нет' : 'Әзірге өтінімдер жоқ'}
                           </td>
                         </tr>
@@ -119,14 +113,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-8 py-6">
                               <p className="font-bold text-gray-900">{app.studentName}</p>
-                              <p className="text-xs text-gray-400">{app.contact}</p>
+                              <p className="text-[10px] text-sky-600 font-bold">{app.email}</p>
+                              <p className="text-[10px] text-gray-400">{app.phone}</p>
                             </td>
                             <td className="px-8 py-6">
-                              <p className="text-gray-700 font-medium">{SUBJECTS.find(s => s.id === app.subjectId)?.name}</p>
-                              <p className="text-xs text-gray-400">{app.level}</p>
+                              <p className="text-gray-700 font-bold text-sm">{SUBJECTS.find(s => s.id === app.subjectId)?.name}</p>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">{app.level}</span>
                             </td>
                             <td className="px-8 py-6">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-bold">
+                                  <Calendar size={12} className="text-sky-400" />
+                                  {app.preferredTime.date ? new Date(app.preferredTime.date).toLocaleDateString() : '—'}
+                                  <span className="text-gray-300">|</span>
+                                  {app.preferredTime.days.join(', ')}
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs text-gray-600 font-bold">
+                                  <Clock size={12} className="text-sky-400" />
+                                  {app.preferredTime.time}
+                                  <span className="bg-sky-100 text-sky-600 px-1.5 py-0.5 rounded text-[8px] font-black uppercase">
+                                    {app.preferredTime.timezone}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-8 py-6">
+                              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tight ${
                                 app.status === ApplicationStatus.NEW ? 'bg-blue-100 text-blue-600' :
                                 app.status === ApplicationStatus.SCHEDULED ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
                               }`}>
@@ -137,7 +149,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               {app.status === ApplicationStatus.NEW ? (
                                 <select 
                                   onChange={(e) => onAssignTeacher(app.id, e.target.value)}
-                                  className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-sky-500 shadow-sm"
+                                  className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-sky-500 shadow-sm w-full"
                                 >
                                   <option value="">{lang === 'ru' ? 'Назначить...' : 'Тағайындау...'}</option>
                                   {teachers.filter(t => t.subjects.includes(app.subjectId)).map(t => (
@@ -145,9 +157,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   ))}
                                 </select>
                               ) : (
-                                <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                                <div className="flex items-center gap-2 text-xs text-gray-600 font-bold">
                                   <div className="bg-green-100 text-green-600 p-1 rounded-full">
-                                    <CheckCircle size={12} />
+                                    <CheckCircle size={10} />
                                   </div>
                                   {teachers.find(t => t.id === app.assignedTeacherId)?.name}
                                 </div>
@@ -239,6 +251,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* Sidebar Settings */}
         <div className="lg:col-span-1 space-y-8">
+          {/* Footer Contact Settings Card */}
+          <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="bg-sky-50 p-2 rounded-xl">
+                <Users className="text-sky-500" size={20} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">{t.admin.footerSettingsTitle}</h2>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-700">{t.admin.footerEmailLabel}</label>
+                <input 
+                  type="email" 
+                  placeholder="info@oku.kz"
+                  className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-sky-50 outline-none transition-all text-sm"
+                  value={adminSettings.footerEmail}
+                  onChange={e => onUpdateSettings({ ...adminSettings, footerEmail: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-700">{t.admin.footerPhoneLabel}</label>
+                <input 
+                  type="text" 
+                  placeholder="+7 (777) 000-00-00"
+                  className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-sky-50 outline-none transition-all text-sm"
+                  value={adminSettings.footerPhone}
+                  onChange={e => onUpdateSettings({ ...adminSettings, footerPhone: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Notification Settings Card */}
           <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
             <div className="flex items-center gap-3 mb-8">

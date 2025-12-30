@@ -8,17 +8,10 @@ import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import LessonRoom from './components/LessonRoom';
-import { UserRole, StudentApplication, ApplicationStatus, User, Teacher, TeacherApplication } from './types';
+import { UserRole, StudentApplication, ApplicationStatus, User, Teacher, TeacherApplication, AdminSettings } from './types';
 import { MOCK_TEACHERS } from './constants';
 import { translations } from './translations';
 import { Shield, ArrowLeft, LogIn } from 'lucide-react';
-
-interface AdminSettings {
-  notificationEmail: string;
-  formspreeId: string;
-  adminUsername?: string;
-  adminPassword?: string;
-}
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -32,7 +25,9 @@ const App: React.FC = () => {
     notificationEmail: '',
     formspreeId: '',
     adminUsername: 'admin',
-    adminPassword: 'admin123'
+    adminPassword: 'admin123',
+    footerEmail: 'info@oku.kz',
+    footerPhone: '+7 (777) 000-00-00'
   });
 
   // Auth specific state
@@ -112,7 +107,15 @@ const App: React.FC = () => {
         console.error("Failed to send background email via Formspree", e);
       }
     } else if (adminSettings.notificationEmail) {
-      const body = encodeURIComponent(Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('\n'));
+      // Improved formatting for structured objects like preferredTime
+      const formattedData = Object.entries(data).map(([k, v]) => {
+        if (typeof v === 'object' && v !== null) {
+          return `${k}: ${JSON.stringify(v)}`;
+        }
+        return `${k}: ${v}`;
+      }).join('\n');
+      
+      const body = encodeURIComponent(formattedData);
       window.open(`mailto:${adminSettings.notificationEmail}?subject=${encodeURIComponent(subject)}&body=${body}`);
     }
   };
@@ -122,9 +125,9 @@ const App: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       studentId: user?.id || 'guest',
       studentName: data.name,
-      contact: data.contact,
+      email: data.email,
+      phone: data.phone,
       subjectId: data.subjectId,
-      goal: data.goal,
       level: data.level,
       preferredTime: data.preferredTime,
       status: ApplicationStatus.NEW,
@@ -133,7 +136,7 @@ const App: React.FC = () => {
     setApplications([...applications, newApp]);
     
     if (!user) {
-      const newUser: User = { id: 's1', name: data.name, role: UserRole.STUDENT, email: data.contact };
+      const newUser: User = { id: 's1', name: data.name, role: UserRole.STUDENT, email: data.email };
       setUser(newUser);
     }
 
@@ -345,7 +348,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout user={user} lang={lang} onNavigate={handleNavigate} onLogout={handleLogout} onSetLang={handleSetLang}>
+    <Layout user={user} lang={lang} onNavigate={handleNavigate} onLogout={handleLogout} onSetLang={handleSetLang} adminSettings={adminSettings}>
       {renderContent()}
     </Layout>
   );

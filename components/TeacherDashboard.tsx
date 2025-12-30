@@ -85,13 +85,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ teacher, availableA
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    {/* Fixed Error: 'goal' property does not exist on StudentApplication. Replaced with relevant info. */}
                     <div className="bg-gray-50 p-4 rounded-xl">
-                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Цель обучения</p>
-                      <p className="text-gray-700 text-sm leading-relaxed">{app.goal}</p>
+                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Сведения</p>
+                      <p className="text-gray-700 text-sm leading-relaxed">Уровень: {app.level}</p>
+                      <p className="text-gray-700 text-sm leading-relaxed">Почта: {app.email}</p>
                     </div>
+                    {/* Fixed Error: PreferredTime is an object and cannot be rendered directly. Formatting to JSX. */}
                     <div className="bg-gray-50 p-4 rounded-xl">
                       <p className="text-xs text-gray-400 uppercase font-bold mb-1">Желаемое время</p>
-                      <p className="text-gray-700 text-sm leading-relaxed">{app.preferredTime}</p>
+                      <div className="text-gray-700 text-sm leading-relaxed">
+                        <p>{app.preferredTime.date ? new Date(app.preferredTime.date).toLocaleDateString() : '—'} | {app.preferredTime.days.join(', ')}</p>
+                        <p>{app.preferredTime.time} ({app.preferredTime.timezone})</p>
+                      </div>
                     </div>
                   </div>
 

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { UserRole } from '../types';
-import { GraduationCap, LogOut, LayoutDashboard, Home, Languages as LangIcon, Users } from 'lucide-react';
+import { UserRole, AdminSettings } from '../types';
+import { GraduationCap, LogOut, LayoutDashboard, Home, Users } from 'lucide-react';
 import { translations } from '../translations';
 
 interface LayoutProps {
@@ -11,9 +11,10 @@ interface LayoutProps {
   onNavigate: (page: string) => void;
   onLogout: () => void;
   onSetLang: (lang: 'ru' | 'kk') => void;
+  adminSettings: AdminSettings;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLogout, onSetLang }) => {
+const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLogout, onSetLang, adminSettings }) => {
   const t = translations[lang];
 
   return (
@@ -21,22 +22,21 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
+            {/* Logo */}
             <div 
               className="flex items-center cursor-pointer group" 
               onClick={() => onNavigate('landing')}
             >
               <div className="bg-kz-blue p-2.5 rounded-2xl mr-3 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-lg shadow-sky-100">
-                <GraduationCap className="text-white w-7 h-7" />
+                < GraduationCap className="text-white w-7 h-7" />
               </div>
               <span className="text-2xl font-extrabold text-gray-900 tracking-tight">{t.brand}</span>
             </div>
 
+            {/* Center Navigation (Desktop Only) */}
             <div className="hidden lg:flex space-x-10 items-center">
               <button onClick={() => onNavigate('landing')} className="text-gray-500 hover:text-sky-600 font-bold text-sm transition-colors flex items-center gap-2">
                 <Home size={18} /> {t.nav.home}
-              </button>
-              <button onClick={() => onNavigate('teacher-signup')} className="text-gray-500 hover:text-sky-600 font-bold text-sm transition-colors flex items-center gap-2">
-                <Users size={18} /> {t.nav.becomeTeacher}
               </button>
               {user && (
                 <button 
@@ -46,11 +46,15 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
                   <LayoutDashboard size={18} /> {t.nav.dashboard}
                 </button>
               )}
-              
-              <div className="flex items-center p-1.5 bg-gray-100 rounded-2xl border border-gray-200">
+            </div>
+
+            {/* Right Side Controls */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Language Switcher - Always Visible */}
+              <div className="flex items-center p-1 bg-gray-50 rounded-xl border border-gray-200 mr-1 sm:mr-2">
                 <button 
                   onClick={() => onSetLang('ru')}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
                     lang === 'ru' 
                     ? 'bg-white text-sky-600 shadow-sm' 
                     : 'text-gray-400 hover:text-gray-600'
@@ -60,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
                 </button>
                 <button 
                   onClick={() => onSetLang('kk')}
-                  className={`px-4 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
                     lang === 'kk' 
                     ? 'bg-white text-sky-600 shadow-sm' 
                     : 'text-gray-400 hover:text-gray-600'
@@ -69,26 +73,30 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
                   KZ
                 </button>
               </div>
-            </div>
 
-            <div className="flex items-center gap-4">
               {!user ? (
-                <div className="flex gap-3">
+                <div className="flex gap-1 sm:gap-3 items-center">
+                  <button 
+                    onClick={() => onNavigate('teacher-signup')}
+                    className="hidden md:flex border-2 border-gray-100 text-gray-600 px-4 py-2.5 rounded-2xl text-sm font-bold hover:bg-gray-50 hover:border-gray-200 transition-all items-center gap-2"
+                  >
+                    <Users size={16} /> {t.nav.becomeTeacher}
+                  </button>
                   <button 
                     onClick={() => onNavigate('apply')}
-                    className="bg-kz-blue text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-sky-600 transition-all shadow-xl shadow-sky-100"
+                    className="bg-kz-blue text-white px-4 sm:px-6 py-3 rounded-2xl text-[12px] sm:text-sm font-bold hover:bg-sky-600 transition-all shadow-xl shadow-sky-100 whitespace-nowrap"
                   >
                     {t.nav.becomeStudent}
                   </button>
                   <button 
                     onClick={() => onNavigate('login')}
-                    className="border-2 border-kz-blue text-kz-blue px-6 py-2.5 rounded-2xl text-sm font-bold hover:bg-sky-50 transition-all"
+                    className="hidden sm:block text-gray-400 hover:text-kz-blue font-bold text-sm px-2"
                   >
                     {t.nav.login}
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
+                <div className="flex items-center gap-2 sm:gap-4 bg-gray-50 px-3 sm:px-4 py-2 rounded-2xl border border-gray-100">
                   <div className="hidden sm:block text-right">
                     <p className="text-sm font-bold text-gray-900 leading-none mb-1">{user.name}</p>
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{user.role}</p>
@@ -135,8 +143,8 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
             <div>
               <h4 className="font-black text-gray-900 mb-6 uppercase tracking-widest text-xs">Контакты</h4>
               <ul className="space-y-4 text-sm font-bold text-gray-500">
-                <li>info@oku.kz</li>
-                <li>+7 (777) 000-00-00</li>
+                <li>{adminSettings.footerEmail}</li>
+                <li>{adminSettings.footerPhone}</li>
                 <li>Almaty, Kazakhstan</li>
               </ul>
             </div>
