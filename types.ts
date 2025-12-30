@@ -26,7 +26,7 @@ export interface Teacher {
   id: string;
   name: string;
   photo: string;
-  subjects: string[]; // Subject IDs
+  subjects: string[]; // Массив ID предметов
   experience: string;
   education: string;
   pricePerHour: number;
