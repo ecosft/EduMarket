@@ -1,6 +1,6 @@
 {
-  "name": "Oku.kz MVP",
-  "description": "A universal online education marketplace for connecting students with professional teachers for 1-on-1 sessions.",
+  "name": "Oku.kz Educational Marketplace",
+  "description": "Modern educational marketplace MVP connecting professional teachers and students in Kazakhstan.",
   "requestFramePermissions": [
     "camera",
     "microphone"

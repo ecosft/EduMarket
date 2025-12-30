@@ -14,43 +14,41 @@ export const getSubjects = (lang: 'ru' | 'kk'): Subject[] => [
   { id: '8', name: lang === 'ru' ? 'Музыка' : 'Музыка', description: lang === 'ru' ? 'Теория и вокал' : 'Теория және вокал', icon: 'Music' },
 ];
 
-// Exported SUBJECTS constant to resolve import errors in StudentDashboard, TeacherDashboard, and AdminDashboard
-export const SUBJECTS = getSubjects('ru');
-
 export const MOCK_TEACHERS: Teacher[] = [
   {
     id: 't1',
     name: 'Александр Иванов',
-    photo: 'https://picsum.photos/seed/t1/200/200',
+    photo: 'https://ui-avatars.com/api/?name=Alex+Ivanov&background=00afca&color=fff&size=200',
     subjects: ['1', '7'],
     experience: '8 лет',
-    education: 'МГУ',
-    pricePerHour: 1500,
-    bio: 'Специализируюсь на подготовке к IELTS.',
-    // Added missing status property as per Teacher type definition
+    education: 'МГУ им. Ломоносова, Филологический факультет',
+    pricePerHour: 4500,
+    bio: 'Специализируюсь на ускоренной подготовке к IELTS и TOEFL. Мои ученики получают в среднем 7.5 баллов.',
     status: 'active'
   },
   {
     id: 't2',
     name: 'Елена Смирнова',
-    photo: 'https://picsum.photos/seed/t2/200/200',
+    photo: 'https://ui-avatars.com/api/?name=Elena+Smirnova&background=f8cc46&color=fff&size=200',
     subjects: ['2', '6'],
     experience: '5 лет',
-    education: 'МФТИ',
-    pricePerHour: 1200,
-    bio: 'Помогаю полюбить математику.',
-    // Added missing status property as per Teacher type definition
+    education: 'МФТИ, Кафедра высшей математики',
+    pricePerHour: 3500,
+    bio: 'Помогаю полюбить математику и информатику. Готовлю к олимпиадам и вступительным экзаменам.',
     status: 'active'
   }
 ];
 
 export const ICON_MAP: Record<string, React.ReactNode> = {
-  Languages: <Languages className="w-6 h-6" />,
-  Calculator: <Calculator className="w-6 h-6" />,
-  BrainCircuit: <BrainCircuit className="w-6 h-6" />,
-  FlaskConical: <FlaskConical className="w-6 h-6" />,
-  Book: <Book className="w-6 h-6" />,
-  Code: <Code className="w-6 h-6" />,
-  Globe: <Globe className="w-6 h-6" />,
-  Music: <Music className="w-6 h-6" />,
+  Languages: <Languages className="w-full h-full" />,
+  Calculator: <Calculator className="w-full h-full" />,
+  BrainCircuit: <BrainCircuit className="w-full h-full" />,
+  FlaskConical: <FlaskConical className="w-full h-full" />,
+  Book: <Book className="w-full h-full" />,
+  Code: <Code className="w-full h-full" />,
+  Globe: <Globe className="w-full h-full" />,
+  Music: <Music className="w-full h-full" />,
 };
+
+// Exported SUBJECTS constant based on default language
+export const SUBJECTS = getSubjects('ru');
