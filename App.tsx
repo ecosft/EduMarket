@@ -107,7 +107,6 @@ const App: React.FC = () => {
         console.error("Failed to send background email via Formspree", e);
       }
     } else if (adminSettings.notificationEmail) {
-      // Improved formatting for structured objects like preferredTime
       const formattedData = Object.entries(data).map(([k, v]) => {
         if (typeof v === 'object' && v !== null) {
           return `${k}: ${JSON.stringify(v)}`;
@@ -194,6 +193,14 @@ const App: React.FC = () => {
     ));
   };
 
+  const handleUpdateTeacher = (updatedTeacher: Teacher) => {
+    setTeachers(prev => prev.map(t => t.id === updatedTeacher.id ? updatedTeacher : t));
+    // If the currently logged in user is this teacher, update their local name info if needed
+    if (user && user.id === updatedTeacher.id) {
+      setUser({ ...user, name: updatedTeacher.name });
+    }
+  };
+
   const handleNavigate = (page: string) => {
     window.location.hash = page;
     setAuthError('');
@@ -221,7 +228,7 @@ const App: React.FC = () => {
       return;
     }
     if (role === UserRole.STUDENT) setUser({ id: 's1', name: lang === 'ru' ? 'Иван Ученик' : 'Арман Оқушы', role, email: 'student@example.com' });
-    if (role === UserRole.TEACHER) setUser({ id: 't1', name: 'Александр Иванов', role, email: 'teacher@example.com' });
+    if (role === UserRole.TEACHER) setUser({ id: teachers[0].id, name: teachers[0].name, role, email: 'teacher@example.com' });
     handleNavigate('dashboard');
   };
 
@@ -324,7 +331,15 @@ const App: React.FC = () => {
         if (user.role === UserRole.TEACHER) {
           const teacher = teachers.find(t => t.id === user.id) || teachers[0];
           const available = applications.filter(app => app.status === ApplicationStatus.NEW);
-          return <TeacherDashboard teacher={teacher} availableApplications={available} onAcceptApplication={() => {}} />;
+          return (
+            <TeacherDashboard 
+              teacher={teacher} 
+              availableApplications={available} 
+              onAcceptApplication={() => {}} 
+              onUpdateProfile={handleUpdateTeacher}
+              lang={lang}
+            />
+          );
         }
         if (user.role === UserRole.ADMIN) {
           return (
