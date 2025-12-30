@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
 import ApplicationForm from './components/ApplicationForm';
+import TeacherRegistrationForm from './components/TeacherRegistrationForm';
 import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import LessonRoom from './components/LessonRoom';
-import { UserRole, StudentApplication, ApplicationStatus, User } from './types';
+import { UserRole, StudentApplication, ApplicationStatus, User, Teacher, TeacherApplication } from './types';
 import { MOCK_TEACHERS } from './constants';
 import { translations } from './translations';
 import { Shield, ArrowLeft, LogIn } from 'lucide-react';
@@ -24,6 +25,8 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'ru' | 'kk'>('ru');
   const [currentPage, setCurrentPage] = useState('landing');
   const [applications, setApplications] = useState<StudentApplication[]>([]);
+  const [teacherRequests, setTeacherRequests] = useState<TeacherApplication[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>(MOCK_TEACHERS);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>({
     notificationEmail: '',
@@ -40,6 +43,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const savedApps = localStorage.getItem('okukz_apps');
     if (savedApps) setApplications(JSON.parse(savedApps));
+
+    const savedTeacherApps = localStorage.getItem('okukz_teacher_apps');
+    if (savedTeacherApps) setTeacherRequests(JSON.parse(savedTeacherApps));
+
+    const savedTeachers = localStorage.getItem('okukz_teachers');
+    if (savedTeachers) setTeachers(JSON.parse(savedTeachers));
 
     const savedSettings = localStorage.getItem('okukz_settings');
     if (savedSettings) {
@@ -67,6 +76,14 @@ const App: React.FC = () => {
   }, [applications]);
 
   useEffect(() => {
+    localStorage.setItem('okukz_teacher_apps', JSON.stringify(teacherRequests));
+  }, [teacherRequests]);
+
+  useEffect(() => {
+    localStorage.setItem('okukz_teachers', JSON.stringify(teachers));
+  }, [teachers]);
+
+  useEffect(() => {
     localStorage.setItem('okukz_settings', JSON.stringify(adminSettings));
   }, [adminSettings]);
 
@@ -79,6 +96,26 @@ const App: React.FC = () => {
   }, [user]);
 
   const handleSetLang = (newLang: 'ru' | 'kk') => setLang(newLang);
+
+  const notifyAdmin = async (subject: string, data: any) => {
+    if (adminSettings.formspreeId) {
+      try {
+        await fetch(`https://formspree.io/f/${adminSettings.formspreeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _subject: subject,
+            ...data
+          })
+        });
+      } catch (e) {
+        console.error("Failed to send background email via Formspree", e);
+      }
+    } else if (adminSettings.notificationEmail) {
+      const body = encodeURIComponent(Object.entries(data).map(([k, v]) => `${k}: ${v}`).join('\n'));
+      window.open(`mailto:${adminSettings.notificationEmail}?subject=${encodeURIComponent(subject)}&body=${body}`);
+    }
+  };
 
   const handleApply = async (data: any) => {
     const newApp: StudentApplication = {
@@ -100,27 +137,58 @@ const App: React.FC = () => {
       setUser(newUser);
     }
 
-    if (adminSettings.formspreeId) {
-      try {
-        await fetch(`https://formspree.io/f/${adminSettings.formspreeId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            _subject: `Новая заявка: ${data.name}`,
-            ...data,
-            appId: newApp.id
-          })
-        });
-      } catch (e) {
-        console.error("Failed to send background email via Formspree", e);
-      }
-    } else if (adminSettings.notificationEmail) {
-      const subject = encodeURIComponent(`Новая заявка: ${data.name}`);
-      const body = encodeURIComponent(
-        `Имя: ${data.name}\nКонтакт: ${data.contact}\nПредмет: ${data.subjectId}\nЦель: ${data.goal}\nУровень: ${data.level}\nВремя: ${data.preferredTime}`
-      );
-      window.open(`mailto:${adminSettings.notificationEmail}?subject=${subject}&body=${body}`);
-    }
+    notifyAdmin(`Новая заявка на обучение: ${data.name}`, data);
+  };
+
+  const handleTeacherRegister = async (data: any) => {
+    const newRequest: TeacherApplication = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...data,
+      status: ApplicationStatus.PENDING,
+      createdAt: new Date().toISOString()
+    };
+    setTeacherRequests([...teacherRequests, newRequest]);
+    notifyAdmin(`Новая анкета учителя: ${data.lastName} ${data.firstName}`, data);
+  };
+
+  const handleApproveTeacher = (requestId: string) => {
+    const request = teacherRequests.find(r => r.id === requestId);
+    if (!request) return;
+
+    const newTeacher: Teacher = {
+      id: `t_${request.id}`,
+      name: `${request.firstName} ${request.lastName}`,
+      photo: `https://ui-avatars.com/api/?name=${request.firstName}+${request.lastName}&background=random`,
+      subjects: request.subjectIds,
+      experience: `${request.experience} лет`,
+      education: request.employment,
+      pricePerHour: 2000,
+      bio: request.bio,
+      employment: request.employment,
+      status: 'active'
+    };
+
+    setTeachers([...teachers, newTeacher]);
+    setTeacherRequests(teacherRequests.map(r => 
+      r.id === requestId ? { ...r, status: ApplicationStatus.APPROVED } : r
+    ));
+  };
+
+  const handleRejectTeacher = (requestId: string) => {
+    setTeacherRequests(teacherRequests.map(r => 
+      r.id === requestId ? { ...r, status: ApplicationStatus.REJECTED } : r
+    ));
+  };
+
+  const handleAssignTeacher = (appId: string, teacherId: string) => {
+    setApplications(applications.map(app => 
+      app.id === appId ? { 
+        ...app, 
+        status: ApplicationStatus.SCHEDULED, 
+        assignedTeacherId: teacherId, 
+        lessonRoomId: `room-${appId}` 
+      } : app
+    ));
   };
 
   const handleNavigate = (page: string) => {
@@ -130,7 +198,6 @@ const App: React.FC = () => {
 
   const handleAdminLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate against stored credentials in settings
     const storedUser = adminSettings.adminUsername || 'admin';
     const storedPass = adminSettings.adminPassword || 'admin123';
 
@@ -172,24 +239,26 @@ const App: React.FC = () => {
         return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} />;
       case 'apply':
         return <ApplicationForm lang={lang} onSubmit={handleApply} />;
+      case 'teacher-signup':
+        return <TeacherRegistrationForm lang={lang} onSubmit={handleTeacherRegister} />;
       case 'login':
         return (
           <div className="max-w-md mx-auto py-24 px-4">
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+            <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-sky-100 border border-gray-100">
               {!showAdminLogin ? (
                 <>
-                  <h2 className="text-2xl font-bold text-center mb-8">{t.auth.roleSelect}</h2>
+                  <h2 className="text-2xl font-extrabold text-gray-900 text-center mb-8 tracking-tight">{t.auth.roleSelect}</h2>
                   <div className="space-y-4">
-                    <button onClick={() => loginAs(UserRole.STUDENT)} className="w-full bg-gray-50 border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm">
-                      {lang === 'ru' ? 'Студент' : 'Оқушы'}
+                    <button onClick={() => loginAs(UserRole.STUDENT)} className="w-full bg-gray-50 border border-gray-100 py-5 rounded-2xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm flex items-center justify-center gap-3">
+                      <LogIn size={20} /> {lang === 'ru' ? 'Я ученик' : 'Мен оқушымын'}
                     </button>
-                    <button onClick={() => loginAs(UserRole.TEACHER)} className="w-full bg-gray-50 border border-gray-200 py-4 rounded-xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm">
-                      {lang === 'ru' ? 'Учитель' : 'Мұғалім'}
+                    <button onClick={() => loginAs(UserRole.TEACHER)} className="w-full bg-gray-50 border border-gray-100 py-5 rounded-2xl font-bold hover:border-sky-500 hover:bg-sky-50 hover:text-sky-500 transition-all shadow-sm flex items-center justify-center gap-3">
+                      <LogIn size={20} /> {lang === 'ru' ? 'Я учитель' : 'Мен мұғаліммін'}
                     </button>
-                    <div className="pt-4 border-t border-gray-100 mt-4">
+                    <div className="pt-6 border-t border-gray-100 mt-6">
                       <button 
                         onClick={() => loginAs(UserRole.ADMIN)} 
-                        className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-gray-600 font-semibold text-sm transition-colors py-2"
+                        className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-sky-500 font-bold text-sm transition-colors py-2"
                       >
                         <Shield size={16} /> {t.auth.loginAsAdmin}
                       </button>
@@ -200,43 +269,43 @@ const App: React.FC = () => {
                 <>
                   <button 
                     onClick={() => { setShowAdminLogin(false); setAuthError(''); }}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 mb-6 font-medium text-sm transition-colors"
+                    className="flex items-center gap-2 text-gray-400 hover:text-gray-900 mb-8 font-bold text-sm transition-colors"
                   >
                     <ArrowLeft size={16} /> {t.auth.back}
                   </button>
-                  <div className="flex justify-center mb-6">
-                    <div className="bg-sky-100 text-sky-600 p-4 rounded-2xl">
-                      <Shield size={32} />
+                  <div className="flex justify-center mb-8">
+                    <div className="bg-sky-100 text-sky-600 p-5 rounded-[2rem] shadow-lg shadow-sky-100">
+                      <Shield size={40} />
                     </div>
                   </div>
-                  <h2 className="text-2xl font-bold text-center mb-6">{t.auth.loginAsAdmin}</h2>
-                  <form onSubmit={handleAdminLoginSubmit} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">{t.auth.username}</label>
+                  <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-8 tracking-tight">{t.auth.loginAsAdmin}</h2>
+                  <form onSubmit={handleAdminLoginSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-700">{t.auth.username}</label>
                       <input 
                         type="text" 
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                        className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-sky-100 focus:border-sky-500 outline-none transition-all"
                         value={adminCreds.username}
                         onChange={e => setAdminCreds({...adminCreds, username: e.target.value})}
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">{t.auth.password}</label>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-bold text-gray-700">{t.auth.password}</label>
                       <input 
                         type="password" 
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                        className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-sky-100 focus:border-sky-500 outline-none transition-all"
                         value={adminCreds.password}
                         onChange={e => setAdminCreds({...adminCreds, password: e.target.value})}
                       />
                     </div>
-                    {authError && <p className="text-red-500 text-xs font-medium">{authError}</p>}
+                    {authError && <p className="text-red-500 text-xs font-bold text-center">{authError}</p>}
                     <button 
                       type="submit" 
-                      className="w-full bg-sky-500 text-white py-4 rounded-xl font-bold hover:bg-sky-600 transition-all shadow-md flex items-center justify-center gap-2"
+                      className="w-full bg-sky-500 text-white py-5 rounded-2xl font-bold text-lg hover:bg-sky-600 transition-all shadow-xl shadow-sky-100 flex items-center justify-center gap-3"
                     >
-                      <LogIn size={20} /> {t.auth.submit}
+                      <LogIn size={24} /> {t.auth.submit}
                     </button>
                   </form>
                 </>
@@ -250,7 +319,7 @@ const App: React.FC = () => {
           return <StudentDashboard applications={applications} onJoinLesson={setActiveLessonId} />;
         }
         if (user.role === UserRole.TEACHER) {
-          const teacher = MOCK_TEACHERS.find(t => t.id === user.id) || MOCK_TEACHERS[0];
+          const teacher = teachers.find(t => t.id === user.id) || teachers[0];
           const available = applications.filter(app => app.status === ApplicationStatus.NEW);
           return <TeacherDashboard teacher={teacher} availableApplications={available} onAcceptApplication={() => {}} />;
         }
@@ -258,8 +327,11 @@ const App: React.FC = () => {
           return (
             <AdminDashboard 
               applications={applications} 
-              teachers={MOCK_TEACHERS} 
-              onAssignTeacher={() => {}}
+              teachers={teachers} 
+              teacherRequests={teacherRequests}
+              onAssignTeacher={handleAssignTeacher}
+              onApproveTeacher={handleApproveTeacher}
+              onRejectTeacher={handleRejectTeacher}
               adminSettings={adminSettings}
               onUpdateSettings={setAdminSettings}
               lang={lang}

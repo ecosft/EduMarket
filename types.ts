@@ -9,7 +9,10 @@ export enum ApplicationStatus {
   NEW = 'NEW',
   TEACHER_FOUND = 'TEACHER_FOUND',
   SCHEDULED = 'SCHEDULED',
-  COMPLETED = 'COMPLETED'
+  COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
 }
 
 export interface Subject {
@@ -28,6 +31,21 @@ export interface Teacher {
   education: string;
   pricePerHour: number;
   bio: string;
+  employment?: string;
+  status: 'active' | 'inactive';
+}
+
+export interface TeacherApplication {
+  id: string;
+  firstName: string;
+  lastName: string;
+  experience: string;
+  employment: string;
+  subjectIds: string[];
+  bio: string;
+  contact: string;
+  status: ApplicationStatus;
+  createdAt: string;
 }
 
 export interface StudentApplication {

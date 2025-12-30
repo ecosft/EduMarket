@@ -26,7 +26,9 @@ export const MOCK_TEACHERS: Teacher[] = [
     experience: '8 лет',
     education: 'МГУ',
     pricePerHour: 1500,
-    bio: 'Специализируюсь на подготовке к IELTS.'
+    bio: 'Специализируюсь на подготовке к IELTS.',
+    // Added missing status property as per Teacher type definition
+    status: 'active'
   },
   {
     id: 't2',
@@ -36,7 +38,9 @@ export const MOCK_TEACHERS: Teacher[] = [
     experience: '5 лет',
     education: 'МФТИ',
     pricePerHour: 1200,
-    bio: 'Помогаю полюбить математику.'
+    bio: 'Помогаю полюбить математику.',
+    // Added missing status property as per Teacher type definition
+    status: 'active'
   }
 ];
 

@@ -6,6 +6,7 @@ export const translations = {
       home: "Главная",
       dashboard: "Кабинет",
       becomeStudent: "Стать учеником",
+      becomeTeacher: "Стать учителем",
       login: "Войти",
       logout: "Выйти"
     },
@@ -51,6 +52,20 @@ export const translations = {
       successDesc: "Ваша заявка принята. Наши специалисты скоро перезвонят.",
       backToDashboard: "В личный кабинет"
     },
+    teacherForm: {
+      title: "Регистрация преподавателя",
+      subtitle: "Присоединяйтесь к команде профессионалов Oku.kz",
+      firstName: "Имя",
+      lastName: "Фамилия",
+      experience: "Стаж работы (лет)",
+      employment: "Место работы / ВУЗ",
+      subjects: "Предметы, которые вы ведете",
+      bio: "Кратко о себе и ваших методиках",
+      contact: "Ваш телефон или Email для связи",
+      submit: "Отправить анкету",
+      successTitle: "Заявка принята!",
+      successDesc: "Мы проверим ваши данные и свяжемся с вами в течение 24 часов."
+    },
     auth: {
       loginTitle: "Вход в систему",
       loginAsAdmin: "Вход для администратора",
@@ -71,7 +86,10 @@ export const translations = {
       usernameLabel: "Логин администратора",
       passwordLabel: "Пароль администратора",
       saveSettings: "Сохранить настройки",
-      settingsSaved: "Настройки сохранены!"
+      settingsSaved: "Настройки сохранены!",
+      teacherRequests: "Заявки учителей",
+      approve: "Одобрить",
+      reject: "Отклонить"
     }
   },
   kk: {
@@ -80,6 +98,7 @@ export const translations = {
       home: "Басты бет",
       dashboard: "Кабинет",
       becomeStudent: "Оқушы болу",
+      becomeTeacher: "Мұғалім болу",
       login: "Кіру",
       logout: "Шығу"
     },
@@ -125,6 +144,20 @@ export const translations = {
       successDesc: "Сіздің өтініміңіз қабылданды. Біздің мамандар жақын арада хабарласады.",
       backToDashboard: "Жеке кабинетке өту"
     },
+    teacherForm: {
+      title: "Мұғалімді тіркеу",
+      subtitle: "Oku.kz кәсіби мамандар командасына қосылыңыз",
+      firstName: "Есімі",
+      lastName: "Тегі",
+      experience: "Жұмыс өтілі (жыл)",
+      employment: "Жұмыс орны / ЖОО",
+      subjects: "Сіз жүргізетін пәндер",
+      bio: "Өзіңіз және әдістемелеріңіз туралы қысқаша",
+      contact: "Байланыс телефоны немесе Email",
+      submit: "Сауалнаманы жіберу",
+      successTitle: "Өтінім қабылданды!",
+      successDesc: "Біз сіздің деректеріңізді тексеріп, 24 сағат ішінде хабарласамыз."
+    },
     auth: {
       loginTitle: "Жүйеге кіру",
       loginAsAdmin: "Администратор үшін кіру",
@@ -145,7 +178,10 @@ export const translations = {
       usernameLabel: "Администратор логині",
       passwordLabel: "Администратор құпия сөзі",
       saveSettings: "Параметрлерді сақтау",
-      settingsSaved: "Параметрлер сақталды!"
+      settingsSaved: "Параметрлер сақталды!",
+      teacherRequests: "Мұғалімдердің өтінімдері",
+      approve: "Мақұлдау",
+      reject: "Қабылдамау"
     }
   }
 };
