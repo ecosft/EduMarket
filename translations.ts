@@ -1,7 +1,7 @@
 
 export const translations = {
   ru: {
-    brand: "EduMarket",
+    brand: "Oku.kz",
     nav: {
       home: "Главная",
       dashboard: "Кабинет",
@@ -75,7 +75,7 @@ export const translations = {
     }
   },
   kk: {
-    brand: "EduMarket",
+    brand: "Oku.kz",
     nav: {
       home: "Басты бет",
       dashboard: "Кабинет",

@@ -111,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
             <GraduationCap className="text-sky-500 w-8 h-8 mr-2" />
             <span className="text-2xl font-bold text-gray-900 tracking-tight">{t.brand}</span>
           </div>
-          <p className="text-gray-500 text-sm">© 2024 EduMarket. {lang === 'ru' ? 'Все права защищены.' : 'Барлық құқықтар қорғалған.'}</p>
+          <p className="text-gray-500 text-sm">© 2024 Oku.kz. {lang === 'ru' ? 'Все права защищены.' : 'Барлық құқықтар қорғалған.'}</p>
         </div>
       </footer>
     </div>

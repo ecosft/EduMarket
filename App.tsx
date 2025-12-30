@@ -38,10 +38,10 @@ const App: React.FC = () => {
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
-    const savedApps = localStorage.getItem('edumarket_apps');
+    const savedApps = localStorage.getItem('okukz_apps');
     if (savedApps) setApplications(JSON.parse(savedApps));
 
-    const savedSettings = localStorage.getItem('edumarket_settings');
+    const savedSettings = localStorage.getItem('okukz_settings');
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
       setAdminSettings(prev => ({
@@ -50,7 +50,7 @@ const App: React.FC = () => {
       }));
     }
     
-    const savedUser = localStorage.getItem('edumarket_user');
+    const savedUser = localStorage.getItem('okukz_user');
     if (savedUser) setUser(JSON.parse(savedUser));
 
     const handleHashChange = () => {
@@ -63,18 +63,18 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('edumarket_apps', JSON.stringify(applications));
+    localStorage.setItem('okukz_apps', JSON.stringify(applications));
   }, [applications]);
 
   useEffect(() => {
-    localStorage.setItem('edumarket_settings', JSON.stringify(adminSettings));
+    localStorage.setItem('okukz_settings', JSON.stringify(adminSettings));
   }, [adminSettings]);
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('edumarket_user', JSON.stringify(user));
+      localStorage.setItem('okukz_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('edumarket_user');
+      localStorage.removeItem('okukz_user');
     }
   }, [user]);
 
