@@ -10,16 +10,28 @@ import LessonRoom from './components/LessonRoom';
 import { UserRole, StudentApplication, ApplicationStatus, User } from './types';
 import { MOCK_TEACHERS } from './constants';
 
+interface AdminSettings {
+  notificationEmail: string;
+  formspreeId: string;
+}
+
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [lang, setLang] = useState<'ru' | 'kk'>('ru');
   const [currentPage, setCurrentPage] = useState('landing');
   const [applications, setApplications] = useState<StudentApplication[]>([]);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [adminSettings, setAdminSettings] = useState<AdminSettings>({
+    notificationEmail: '',
+    formspreeId: ''
+  });
 
   useEffect(() => {
     const savedApps = localStorage.getItem('edumarket_apps');
     if (savedApps) setApplications(JSON.parse(savedApps));
+
+    const savedSettings = localStorage.getItem('edumarket_settings');
+    if (savedSettings) setAdminSettings(JSON.parse(savedSettings));
     
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '') || 'landing';
@@ -34,9 +46,13 @@ const App: React.FC = () => {
     localStorage.setItem('edumarket_apps', JSON.stringify(applications));
   }, [applications]);
 
-  const toggleLang = () => setLang(prev => prev === 'ru' ? 'kk' : 'ru');
+  useEffect(() => {
+    localStorage.setItem('edumarket_settings', JSON.stringify(adminSettings));
+  }, [adminSettings]);
 
-  const handleApply = (data: any) => {
+  const handleSetLang = (newLang: 'ru' | 'kk') => setLang(newLang);
+
+  const handleApply = async (data: any) => {
     const newApp: StudentApplication = {
       id: Math.random().toString(36).substr(2, 9),
       studentId: user?.id || 'guest',
@@ -51,9 +67,33 @@ const App: React.FC = () => {
     };
     setApplications([...applications, newApp]);
     
+    // Auto-login logic
     if (!user) {
       const newUser: User = { id: 's1', name: data.name, role: UserRole.STUDENT, email: data.contact };
       setUser(newUser);
+    }
+
+    // Notification Logic
+    if (adminSettings.formspreeId) {
+      try {
+        await fetch(`https://formspree.io/f/${adminSettings.formspreeId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            _subject: `Новая заявка: ${data.name}`,
+            ...data,
+            appId: newApp.id
+          })
+        });
+      } catch (e) {
+        console.error("Failed to send background email via Formspree", e);
+      }
+    } else if (adminSettings.notificationEmail) {
+      const subject = encodeURIComponent(`Новая заявка: ${data.name}`);
+      const body = encodeURIComponent(
+        `Имя: ${data.name}\nКонтакт: ${data.contact}\nПредмет: ${data.subjectId}\nЦель: ${data.goal}\nУровень: ${data.level}\nВремя: ${data.preferredTime}`
+      );
+      window.open(`mailto:${adminSettings.notificationEmail}?subject=${subject}&body=${body}`);
     }
   };
 
@@ -105,7 +145,16 @@ const App: React.FC = () => {
           return <TeacherDashboard teacher={teacher} availableApplications={available} onAcceptApplication={() => {}} />;
         }
         if (user.role === UserRole.ADMIN) {
-          return <AdminDashboard applications={applications} teachers={MOCK_TEACHERS} onAssignTeacher={() => {}} />;
+          return (
+            <AdminDashboard 
+              applications={applications} 
+              teachers={MOCK_TEACHERS} 
+              onAssignTeacher={() => {}}
+              adminSettings={adminSettings}
+              onUpdateSettings={setAdminSettings}
+              lang={lang}
+            />
+          );
         }
         return null;
       default:
@@ -114,7 +163,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <Layout user={user} lang={lang} onNavigate={handleNavigate} onLogout={handleLogout} onToggleLang={toggleLang}>
+    <Layout user={user} lang={lang} onNavigate={handleNavigate} onLogout={handleLogout} onSetLang={handleSetLang}>
       {renderContent()}
     </Layout>
   );

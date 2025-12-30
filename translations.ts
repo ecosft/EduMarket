@@ -50,6 +50,14 @@ export const translations = {
       successTitle: "Спасибо! Мы свяжемся с вами",
       successDesc: "Ваша заявка принята. Наши специалисты скоро перезвонят.",
       backToDashboard: "В личный кабинет"
+    },
+    admin: {
+      settingsTitle: "Настройки уведомлений",
+      emailLabel: "Email для заявок",
+      emailPlaceholder: "your-email@example.com",
+      formspreeLabel: "Formspree ID (опционально)",
+      formspreeHint: "Используйте Formspree для отправки писем в фоне",
+      saveSettings: "Сохранить настройки"
     }
   },
   kk: {
@@ -102,6 +110,14 @@ export const translations = {
       successTitle: "Рахмет! Біз сізбен байланысамыз",
       successDesc: "Сіздің өтініміңіз қабылданды. Біздің мамандар жақын арада хабарласады.",
       backToDashboard: "Жеке кабинетке өту"
+    },
+    admin: {
+      settingsTitle: "Хабарландыру параметрлері",
+      emailLabel: "Өтінімдерге арналған Email",
+      emailPlaceholder: "your-email@example.com",
+      formspreeLabel: "Formspree ID (міндетті емес)",
+      formspreeHint: "Хаттарды фонда жіберу үшін Formspree қолданыңыз",
+      saveSettings: "Параметрлерді сақтау"
     }
   }
 };

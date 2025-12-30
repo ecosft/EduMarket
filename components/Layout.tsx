@@ -10,10 +10,10 @@ interface LayoutProps {
   lang: 'ru' | 'kk';
   onNavigate: (page: string) => void;
   onLogout: () => void;
-  onToggleLang: () => void;
+  onSetLang: (lang: 'ru' | 'kk') => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLogout, onToggleLang }) => {
+const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLogout, onSetLang }) => {
   const t = translations[lang];
 
   return (
@@ -44,13 +44,29 @@ const Layout: React.FC<LayoutProps> = ({ children, user, lang, onNavigate, onLog
                 </button>
               )}
               
-              <button 
-                onClick={onToggleLang}
-                className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-full text-sm font-bold transition-all text-gray-700 border border-gray-200"
-              >
-                <LangIcon size={16} className="text-sky-500" />
-                {lang === 'ru' ? 'KZ' : 'RU'}
-              </button>
+              {/* Updated Language Switcher */}
+              <div className="flex items-center p-1 bg-gray-100 rounded-full border border-gray-200">
+                <button 
+                  onClick={() => onSetLang('ru')}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    lang === 'ru' 
+                    ? 'bg-sky-500 text-white shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  RU
+                </button>
+                <button 
+                  onClick={() => onSetLang('kk')}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    lang === 'kk' 
+                    ? 'bg-sky-500 text-white shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  KZ
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
