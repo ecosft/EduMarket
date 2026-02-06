@@ -1,8 +1,9 @@
 {
-  "name": "Oku.kz MVP",
-  "description": "A universal online education marketplace for connecting students with professional teachers for 1-on-1 sessions.",
+  "name": "Oku.kz Virtual Classroom",
+  "description": "Professional virtual classroom with interactive whiteboard, video conferencing and chat.",
   "requestFramePermissions": [
     "camera",
-    "microphone"
+    "microphone",
+    "display-capture"
   ]
 }
