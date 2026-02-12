@@ -25,6 +25,7 @@ export interface Subject {
 export interface Teacher {
   id: string;
   name: string;
+  age: number; // Возраст
   photo: string;
   subjects: string[]; // Массив ID предметов
   experience: string;

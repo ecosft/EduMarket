@@ -8,8 +8,9 @@ import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import LessonRoom from './components/LessonRoom';
+import TeachersList from './components/TeachersList';
 import { UserRole, StudentApplication, ApplicationStatus, User, Teacher, TeacherApplication, AdminSettings } from './types';
-import { MOCK_TEACHERS } from './constants';
+import { MOCK_TEACHERS, getSubjects } from './constants';
 import { translations } from './translations';
 import { Shield, ArrowLeft, LogIn } from 'lucide-react';
 
@@ -29,11 +30,6 @@ const App: React.FC = () => {
     footerEmail: 'info@oku.kz',
     footerPhone: '+7 (777) 000-00-00'
   });
-
-  // Auth specific state
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminCreds, setAdminCreds] = useState({ username: '', password: '' });
-  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     const savedApps = localStorage.getItem('okukz_apps');
@@ -92,33 +88,6 @@ const App: React.FC = () => {
 
   const handleSetLang = (newLang: 'ru' | 'kk') => setLang(newLang);
 
-  const notifyAdmin = async (subject: string, data: any) => {
-    if (adminSettings.formspreeId) {
-      try {
-        await fetch(`https://formspree.io/f/${adminSettings.formspreeId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            _subject: subject,
-            ...data
-          })
-        });
-      } catch (e) {
-        console.error("Failed to send background email via Formspree", e);
-      }
-    } else if (adminSettings.notificationEmail) {
-      const formattedData = Object.entries(data).map(([k, v]) => {
-        if (typeof v === 'object' && v !== null) {
-          return `${k}: ${JSON.stringify(v)}`;
-        }
-        return `${k}: ${v}`;
-      }).join('\n');
-      
-      const body = encodeURIComponent(formattedData);
-      window.open(`mailto:${adminSettings.notificationEmail}?subject=${encodeURIComponent(subject)}&body=${body}`);
-    }
-  };
-
   const handleApply = async (data: any) => {
     const newApp: StudentApplication = {
       id: Math.random().toString(36).substr(2, 9),
@@ -138,8 +107,6 @@ const App: React.FC = () => {
       const newUser: User = { id: 's1', name: data.name, role: UserRole.STUDENT, email: data.email };
       setUser(newUser);
     }
-
-    notifyAdmin(`Новая заявка на обучение: ${data.name}`, data);
   };
 
   const handleTeacherRegister = async (data: any) => {
@@ -150,7 +117,6 @@ const App: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     setTeacherRequests([...teacherRequests, newRequest]);
-    notifyAdmin(`Новая анкета учителя: ${data.lastName} ${data.firstName}`, data);
   };
 
   const handleApproveTeacher = (requestId: string) => {
@@ -160,6 +126,7 @@ const App: React.FC = () => {
     const newTeacher: Teacher = {
       id: `t_${request.id}`,
       name: `${request.firstName} ${request.lastName}`,
+      age: 25,
       photo: `https://ui-avatars.com/api/?name=${request.firstName}+${request.lastName}&background=random`,
       subjects: request.subjectIds,
       experience: `${request.experience} лет`,
@@ -193,9 +160,19 @@ const App: React.FC = () => {
     ));
   };
 
+  const handleAcceptApplication = (appId: string, teacherId: string) => {
+    setApplications(applications.map(app => 
+      app.id === appId ? { 
+        ...app, 
+        assignedTeacherId: teacherId,
+        status: ApplicationStatus.TEACHER_FOUND,
+        lessonRoomId: `room-${appId}` 
+      } : app
+    ));
+  };
+
   const handleUpdateTeacher = (updatedTeacher: Teacher) => {
     setTeachers(prev => prev.map(t => t.id === updatedTeacher.id ? updatedTeacher : t));
-    // If the currently logged in user is this teacher, update their local name info if needed
     if (user && user.id === updatedTeacher.id) {
       setUser({ ...user, name: updatedTeacher.name });
     }
@@ -205,6 +182,10 @@ const App: React.FC = () => {
     window.location.hash = page;
     setAuthError('');
   };
+
+  const [adminCreds, setAdminCreds] = useState({ username: '', password: '' });
+  const [authError, setAuthError] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const handleAdminLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,13 +209,23 @@ const App: React.FC = () => {
       return;
     }
     if (role === UserRole.STUDENT) setUser({ id: 's1', name: lang === 'ru' ? 'Иван Ученик' : 'Арман Оқушы', role, email: 'student@example.com' });
-    if (role === UserRole.TEACHER) setUser({ id: teachers[0].id, name: teachers[0].name, role, email: 'teacher@example.com' });
+    if (role === UserRole.TEACHER) {
+      // Find or create a teacher identity
+      const existingTeacher = teachers[0];
+      setUser({ id: existingTeacher.id, name: existingTeacher.name, role, email: 'teacher@example.com' });
+    }
     handleNavigate('dashboard');
   };
 
   const handleLogout = () => {
     setUser(null);
     handleNavigate('landing');
+  };
+
+  const handleConfirmLesson = (appId: string) => {
+    setApplications(applications.map(app => 
+      app.id === appId ? { ...app, status: ApplicationStatus.SCHEDULED } : app
+    ));
   };
 
   const renderContent = () => {
@@ -246,7 +237,23 @@ const App: React.FC = () => {
 
     switch (currentPage) {
       case 'landing':
-        return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} />;
+        return (
+          <LandingPage 
+            lang={lang} 
+            onApply={() => handleNavigate('apply')} 
+            onViewTeachers={() => handleNavigate('teachers')} 
+          />
+        );
+      case 'teachers':
+        return (
+          <TeachersList 
+            teachers={teachers} 
+            subjects={getSubjects(lang)} 
+            lang={lang} 
+            onBack={() => handleNavigate('landing')} 
+            onApply={() => handleNavigate('apply')}
+          />
+        );
       case 'apply':
         return <ApplicationForm lang={lang} onSubmit={handleApply} />;
       case 'teacher-signup':
@@ -324,18 +331,22 @@ const App: React.FC = () => {
           </div>
         );
       case 'dashboard':
-        if (!user) return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} />;
+        if (!user) return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} onViewTeachers={() => handleNavigate('teachers')} />;
         if (user.role === UserRole.STUDENT) {
           return <StudentDashboard applications={applications} onJoinLesson={setActiveLessonId} />;
         }
         if (user.role === UserRole.TEACHER) {
           const teacher = teachers.find(t => t.id === user.id) || teachers[0];
-          const available = applications.filter(app => app.status === ApplicationStatus.NEW);
+          const available = applications.filter(app => app.status === ApplicationStatus.NEW && teacher.subjects.includes(app.subjectId));
+          const myLessons = applications.filter(app => app.assignedTeacherId === teacher.id);
           return (
             <TeacherDashboard 
               teacher={teacher} 
               availableApplications={available} 
-              onAcceptApplication={() => {}} 
+              myLessons={myLessons}
+              onAcceptApplication={(appId) => handleAcceptApplication(appId, teacher.id)} 
+              onConfirmLesson={handleConfirmLesson}
+              onJoinLesson={setActiveLessonId}
               onUpdateProfile={handleUpdateTeacher}
               lang={lang}
             />
@@ -358,7 +369,7 @@ const App: React.FC = () => {
         }
         return null;
       default:
-        return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} />;
+        return <LandingPage lang={lang} onApply={() => handleNavigate('apply')} onViewTeachers={() => handleNavigate('teachers')} />;
     }
   };
 

@@ -7,9 +7,10 @@ import { ArrowRight, CheckCircle, Star, Users, Video, MessageCircle } from 'luci
 interface LandingPageProps {
   lang: 'ru' | 'kk';
   onApply: () => void;
+  onViewTeachers: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ lang, onApply }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ lang, onApply, onViewTeachers }) => {
   const t = translations[lang];
   const subjects = getSubjects(lang);
 
@@ -35,7 +36,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ lang, onApply }) => {
               >
                 {t.hero.ctaPrimary} <ArrowRight size={20} />
               </button>
-              <button className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2">
+              <button 
+                onClick={onViewTeachers}
+                className="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+              >
                 {t.hero.ctaSecondary}
               </button>
             </div>

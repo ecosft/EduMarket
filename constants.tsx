@@ -14,32 +14,43 @@ export const getSubjects = (lang: 'ru' | 'kk'): Subject[] => [
   { id: '8', name: lang === 'ru' ? 'Музыка' : 'Музыка', description: lang === 'ru' ? 'Теория и вокал' : 'Теория және вокал', icon: 'Music' },
 ];
 
-// Exported SUBJECTS constant to resolve import errors in StudentDashboard, TeacherDashboard, and AdminDashboard
 export const SUBJECTS = getSubjects('ru');
 
 export const MOCK_TEACHERS: Teacher[] = [
   {
     id: 't1',
     name: 'Александр Иванов',
-    photo: 'https://picsum.photos/seed/t1/200/200',
+    age: 32,
+    photo: 'https://ui-avatars.com/api/?name=Александр+Иванов&background=00afca&color=fff',
     subjects: ['1', '7'],
     experience: '8 лет',
     education: 'МГУ',
     pricePerHour: 1500,
     bio: 'Специализируюсь на подготовке к IELTS.',
-    // Added missing status property as per Teacher type definition
     status: 'active'
   },
   {
     id: 't2',
     name: 'Елена Смирнова',
-    photo: 'https://picsum.photos/seed/t2/200/200',
+    age: 28,
+    photo: 'https://ui-avatars.com/api/?name=Елена+Смирнова&background=f8cc46&color=fff',
     subjects: ['2', '6'],
     experience: '5 лет',
     education: 'МФТИ',
     pricePerHour: 1200,
     bio: 'Помогаю полюбить математику.',
-    // Added missing status property as per Teacher type definition
+    status: 'active'
+  },
+  {
+    id: 't3',
+    name: 'Даурен Касымов',
+    age: 45,
+    photo: 'https://ui-avatars.com/api/?name=Даурен+Касымов&background=00afca&color=fff',
+    subjects: ['3', '4'],
+    experience: '15 лет',
+    education: 'КазНУ',
+    pricePerHour: 2500,
+    bio: 'Эксперт в области физики и химии.',
     status: 'active'
   }
 ];
